@@ -1,35 +1,61 @@
 import GameGrid
+import Entities
+import random
 
 gameRunning = True
 
-newGrid = GameGrid.Grid(12, 12)
+gridSize = random.randrange(12, 21)
 
-newGrid.DefinePlayerObjective(5, 4)
+#print("GridSize selected: ", gridSize)
 
-newPlayer = GameGrid.Player(0, 0)
+enemiesCount = gridSize/2
+
+#print("Enemies Count selected: ", enemiesCount)
+
+newGrid = GameGrid.Grid(5, 5)
+
+newPlayer = Entities.Player(0, 0)
 
 newGrid.RegisterPlayer(newPlayer)
+
+newGrid.DefinePlayerObjective(-1, -1, newPlayer)
+
+#print("PlayerzaoPOS[", newPlayer.ReturnEntityPosition(0), "][" , newPlayer.ReturnEntityPosition(1), "]")
+
+newGrid.RegisterEnemies(True, False, 1)
 
 #print("Game still running...")
 #print("Creating new game grid...")
 
 #print("Game grid created! Current size " , newGrid.ReturnGridSize(0) , "X" , newGrid.ReturnGridSize(1))
 
-newGrid.PrintCurrentGameGrid()
+newGrid.PrintCurrentGameGrid(False)
 
 while gameRunning:
     #get input from player
     print("\n\n4 - Left | 8 - Top | 6 - Right | 5 - Down")
-    print("CurrentPlayerPos[", newPlayer.ReturnPlayerPosition(0), "][" , newPlayer.ReturnPlayerPosition(1), "]", end="")
-    movement = input(" | Enter your next move: ")
+    #print("CurrentPlayerPos[", newPlayer.ReturnEntityPosition(0), "][" , newPlayer.ReturnEntityPosition(1), "] | ", end="")
+    movement = input("Enter your next move: ")
 
     #print("Movement chosen by the player: ", movement)
 
     if movement != "":
-        newGrid.MovePlayerInGrid(int(movement))
+        newGrid.MovePlayerInGrid(int(movement), newPlayer)
 
-    newGrid.PrintCurrentGameGrid()
+    newGrid.PrintCurrentGameGrid(False)
 
-    gameRunning = not newGrid.CheckIfPlayerHasWon()
+    gameRunning = not newGrid.CheckIfPlayerWonOrDied(newPlayer)
+
+    if not gameRunning: break
+
+    if newGrid.ReturnEnemiesAlive() > 0:
+        newGrid.MoveEnemiesInGrid(newPlayer)
+
+        newGrid.PrintCurrentGameGrid(True)
+
+    gameRunning = not newGrid.CheckIfPlayerWonOrDied(newPlayer)
+
+    if not gameRunning: break
+
 
 
