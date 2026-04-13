@@ -1,6 +1,6 @@
 import random
 
-import Entities
+from Labyrinthys import Entities
 
 class Cell:
     def __init__(self, cellValue):
@@ -35,7 +35,6 @@ class Grid:
 
             if randomNumber:
                 #actualNumber = random.randrange(0, len(self.gridOfCells) * len(self.gridOfCells[0]))
-                enemiesNumber = enemiesNumber + 1
                 actualNumber = random.randrange(0, enemiesNumber)
 
             self.enemies = [Entities.Enemy(0, 0) for x in range(actualNumber)]
@@ -53,11 +52,12 @@ class Grid:
 
                         self.gridOfCells[randPosX][randPosY].SetCellValue("[E]")
                         break
-
+            '''
             print("Enemies list size: ", len(self.enemies))
 
             for y in range(0, len(self.enemies)):
                 print("Enemy[", y, "]-POS: ", self.enemies[y].ReturnEntityPosition(0),",", self.enemies[y].ReturnEntityPosition(1),"]")
+            '''
 
     def ReturnGridSize(self, index):
         if index == 1:
@@ -101,7 +101,7 @@ class Grid:
             self.finalObjetive[1] = coordY
 
     def RegisterPlayer(self, newPlayer: Entities.Player):
-        print("PlayerPosX: ", newPlayer.ReturnEntityPosition(0), "|PlayerPosY: ", newPlayer.ReturnEntityPosition(1))
+        #print("PlayerPosX: ", newPlayer.ReturnEntityPosition(0), "|PlayerPosY: ", newPlayer.ReturnEntityPosition(1))
         self.gridOfCells[newPlayer.ReturnEntityPosition(0)][newPlayer.ReturnEntityPosition(1)].SetCellValue("[P]")
 
     def MovePlayerInGrid(self, posIndex: int, newPlayer: Entities.Player):
@@ -142,10 +142,16 @@ class Grid:
             elif cellPlayerWantsToMoveTo.ReturnCellValue() == "[E]":
                 print("Player destroyed enemy!")
                 self.gridOfCells[cellPlayerWantsToMoveToPosX][cellPlayerWantsToMoveToPosY].SetCellValue("[ ]")
+
+                #print("Length of enemies array: ", len(self.enemies))
+
                 for x in range(0, len(self.enemies)):
+                    #print("X Value: ", x)
+                    #print("EnemyPosX: ", self.enemies[x].ReturnEntityPosition(0), ",", self.enemies[x].ReturnEntityPosition(1))
                     enemyPos = [self.enemies[x].ReturnEntityPosition(0), self.enemies[x].ReturnEntityPosition(1)]
                     if enemyPos[0] == cellPlayerWantsToMoveToPosX and enemyPos[1] == cellPlayerWantsToMoveToPosY:
                         self.enemies.pop(x)
+                        break
             else:
                 self.gridOfCells[newPlayer.ReturnEntityPosition(0)][newPlayer.ReturnEntityPosition(1)].SetCellValue("[ ]")
                 newPlayer.SetNewPosForEntity(newPos, arrayIndex)
@@ -171,9 +177,15 @@ class Grid:
        if self.enemies != "":
             for x in range(0, len(self.enemies)):
                 posToRemove = self.enemies[x].MoveAfterPlayer(newPlayer)
-                self.gridOfCells[posToRemove[0]][posToRemove[1]].SetCellValue("[ ]")
                 newEnemyPos = [self.enemies[x].ReturnEntityPosition(0),self.enemies[x].ReturnEntityPosition(1)]
-                self.gridOfCells[newEnemyPos[0]][newEnemyPos[1]].SetCellValue("[E]")
+
+                if self.gridOfCells[newEnemyPos[0]][newEnemyPos[1]].ReturnCellValue() == "[E]":
+                    #print("\nWaiting for another one to move like a good boy :) !")
+                    self.enemies[x].SetNewPosForEntity(posToRemove[0], 0)
+                    self.enemies[x].SetNewPosForEntity(posToRemove[1], 1)
+                else:
+                    self.gridOfCells[posToRemove[0]][posToRemove[1]].SetCellValue("[ ]")
+                    self.gridOfCells[newEnemyPos[0]][newEnemyPos[1]].SetCellValue("[E]")
 
     def ReturnEnemiesAlive(self):
         return len(self.enemies)
