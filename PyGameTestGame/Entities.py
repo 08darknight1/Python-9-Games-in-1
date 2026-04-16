@@ -1,24 +1,35 @@
 import pygame
 
 class Entity:
-    def __init__(self, name):
+    def __init__(self, name, width, height, speed, posX, posY):
         self.name = name
-
-class Player(Entity):
-    def __init__(self, name, width, height, speed, debug):
-        super().__init__(name)
         self.width = width
         self.height = height
-        self.debug = debug
+        self.posX = posX
+        self.posY = posY
         self.speed = speed
 
-        self.CreatePyGamePlayer(debug)
-
-    def CreatePyGamePlayer(self, debugRect: bool):
+    def CreatePyGameObject(self, debugRect: bool, posX: float, posY: float):
         if debugRect:
-            self.playerObject = pygame.Rect(0, 0, self.width, self.height)
+            self.pyGameObject = pygame.Rect(posX, posY, self.width, self.height)
         else:
             print("Waiting for code implementation of definitive player!")
 
-    def ReturnPlayerObject(self):
-        return self.playerObject
+    def ReturnPyGameObject(self):
+        return self.pyGameObject
+
+class Meteor(Entity):
+    def __init__(self, name, width, height, speed, posX, posY, debug):
+        super().__init__(name, width, height, speed, posX, posY)
+
+        self.debug = debug
+
+        self.CreatePyGameObject(debug, self.posX, self.posY)
+
+class Player(Entity):
+    def __init__(self, name, width, height, speed, posX, posY, debug):
+        super().__init__(name, width, height, speed, posX, posY)
+
+        self.debug = debug
+
+        self.CreatePyGameObject(debug, self.posX, self.posY)

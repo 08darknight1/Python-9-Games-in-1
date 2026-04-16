@@ -15,6 +15,6 @@ while True:
     if gameOption == 0:
         LabyrinthysMain.RunGame()
     elif gameOption == 1:
-        PyGameMain.RunGame(800, 600)
+        PyGameMain.RunGame(800, 600, 50, 50, 5)
     elif gameOption == 10:
         break
