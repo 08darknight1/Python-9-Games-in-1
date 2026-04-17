@@ -2,12 +2,15 @@ import random
 import time
 import pygame
 from PyGameTestGame import Entities
-pygame.font.init()
 
 class RunGame:
 
     def __init__(self, Width: int, Height: int, playerH: int, playerW: int, starsNumberPerCycle) -> None:
+        pygame.font.init()
+
         self.font = pygame.font.SysFont("Arial", 20)
+
+        self.gameOverFont = pygame.font.SysFont("Arial", 80)
 
         self.window = pygame.display.set_mode((Width, Height))
 
@@ -17,7 +20,7 @@ class RunGame:
 
         self.background = pygame.transform.scale(pygame.image.load("PyGameTestGame/Resources/spaceBackground.jpeg"), (Width, Height))
 
-        self.player = Entities.Player("Ship", playerW, playerH, 10, (Width-playerW)/2, Height-playerH, True)
+        self.player = Entities.Player("Ship", playerW, playerH, 10, (Width-playerW)/2, Height-playerH, False)
 
         self.clock = pygame.time.Clock()
 
@@ -47,15 +50,15 @@ class RunGame:
                 #mt fodido isso mds
                 meteorWidth = self.player.width/2
 
-                print("Defined meteor Width as: ", meteorWidth)
+                #print("Defined meteor Width as: ", meteorWidth)
 
                 meteorHeight = self.player.height/2
 
-                print("Defined meteor Height as: ", meteorHeight)
+                #print("Defined meteor Height as: ", meteorHeight)
 
                 posX = random.randrange(0, self.window.get_width())
 
-                print("Defined meteor PosX as: ", posX)
+                #print("Defined meteor PosX as: ", posX)
 
                 meteorName = "Meteor " + str(x)
 
@@ -85,8 +88,10 @@ class RunGame:
                 self.meteors.remove(meteor)
             elif meteorObj.y + meteorObj.height >= self.player.ReturnPyGameObject().y and meteorObj.colliderect(self.player.ReturnPyGameObject()):
                 self.meteors.remove(meteor)
-                #Implement something about the player being hit here!
+                self.player.dead = True
                 break
+
+        self.CheckForGameOver(self.player)
 
         self.DrawGame()
 
@@ -99,11 +104,18 @@ class RunGame:
 
         if self.player.debug:
             pygame.draw.rect(self.window, "red", self.player.ReturnPyGameObject())
+        else:
+            playerObj = self.player.ReturnPyGameObject()
+            if self.player.spriteDirection >= 1:
+                self.window.blit(pygame.transform.flip(self.player.currentSprite, True, False), (playerObj.x, playerObj.y))
+            else:
+                self.window.blit(self.player.currentSprite, (playerObj.x, playerObj.y))
+            #print("Trying to implement this bitch")
 
         for x in range(len(self.meteors)):
             meteorObj = self.meteors[x].ReturnPyGameObject()
             pygame.draw.rect(self.window, (0, 255, 0), meteorObj)
-            print("Hi my name is", self.meteors[x].name, " | My current Position is: [", meteorObj.x,"][", meteorObj.y,"]")
+            #print("Hi my name is", self.meteors[x].name, " | My current Position is: [", meteorObj.x,"][", meteorObj.y,"]")
 
         pygame.display.update()
 
@@ -112,6 +124,24 @@ class RunGame:
 
         if self.userInput[pygame.K_LEFT] and player.ReturnPyGameObject().x >= 0:
             player.ReturnPyGameObject().x = player.ReturnPyGameObject().x - player.speed
-
-        if self.userInput[pygame.K_RIGHT] and player.ReturnPyGameObject().x <= self.window.get_width() - player.width:
+            player.SetNewPlayerSprite(1, 0)
+        elif self.userInput[pygame.K_RIGHT] and player.ReturnPyGameObject().x <= self.window.get_width() - player.width:
             player.ReturnPyGameObject().x = player.ReturnPyGameObject().x + player.speed
+            player.SetNewPlayerSprite(1, 1)
+        else:
+            player.SetNewPlayerSprite(0, 0)
+
+
+    def CheckForGameOver(self, player: Entities.Player):
+        if player.dead:
+            lostText= self.gameOverFont.render("You lost!", 1, "White")
+
+            textWidth = self.window.get_width()/2 - lostText.get_width()/2
+            textHeight = self.window.get_height()/2 - lostText.get_height()/2
+
+            self.window.blit(lostText, (textWidth, textHeight))
+
+            pygame.display.update()
+            pygame.time.wait(4000)
+            
+            self.running = False
