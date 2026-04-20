@@ -1,11 +1,14 @@
 import random
 import time
 import pygame
+import os
 from PyGameTestGame import Entities
+from PyGameTestGame.Entities import Meteor
+
 
 class RunGame:
 
-    def __init__(self, Width: int, Height: int, playerH: int, playerW: int, starsNumberPerCycle) -> None:
+    def __init__(self, Width: int, Height: int, playerH: int, playerW: int, meteorsPerCycle) -> None:
         pygame.font.init()
 
         self.font = pygame.font.SysFont("Arial", 20)
@@ -18,7 +21,9 @@ class RunGame:
 
         self.running = True
 
-        self.background = pygame.transform.scale(pygame.image.load("PyGameTestGame/Resources/spaceBackground.jpeg"), (Width, Height))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        self.background = pygame.transform.scale(pygame.image.load(script_dir + "/Resources/spaceBackground.jpeg"), (Width, Height))
 
         self.player = Entities.Player("Ship", playerW, playerH, 10, (Width-playerW)/2, Height-playerH, False)
 
@@ -34,7 +39,9 @@ class RunGame:
 
         self.meteors = []
 
-        self.starsToSpawn = starsNumberPerCycle
+        self.meteorsToSpawn = meteorsPerCycle
+
+        self.animationTimerLimit = 35
 
         while self.running:
             self.PlayGame()
@@ -43,28 +50,18 @@ class RunGame:
 
     def PlayGame(self):
         self.meteorCount += self.clock.tick(60)
+
         self.elapsedTime = time.time() - self.startTime
 
         if self.meteorCount > self.meteorIncrement:
-            for x in range(self.starsToSpawn):
-                #mt fodido isso mds
+            for x in range(self.meteorsToSpawn):
                 meteorWidth = self.player.width/2
-
-                #print("Defined meteor Width as: ", meteorWidth)
-
                 meteorHeight = self.player.height/2
-
-                #print("Defined meteor Height as: ", meteorHeight)
-
                 posX = random.randrange(0, self.window.get_width())
-
-                #print("Defined meteor PosX as: ", posX)
-
                 meteorName = "Meteor " + str(x)
+                newMeteor = Entities.Meteor(meteorName, meteorWidth, meteorHeight, 2, posX, ((meteorHeight*2) * -1), False)
 
-                newStar = Entities.Meteor(meteorName, meteorWidth, meteorHeight, 2, posX, (meteorHeight * -1), True)
-
-                self.meteors.append(newStar)
+                self.meteors.append(newMeteor)
 
             self.meteorIncrement = max(200, self.meteorIncrement - 50)
 
@@ -93,6 +90,8 @@ class RunGame:
 
         self.CheckForGameOver(self.player)
 
+        self.AnimationCheck()
+
         self.DrawGame()
 
     def DrawGame(self):
@@ -106,31 +105,41 @@ class RunGame:
             pygame.draw.rect(self.window, "red", self.player.ReturnPyGameObject())
         else:
             playerObj = self.player.ReturnPyGameObject()
-            if self.player.spriteDirection >= 1:
-                self.window.blit(pygame.transform.flip(self.player.currentSprite, True, False), (playerObj.x, playerObj.y))
-            else:
-                self.window.blit(self.player.currentSprite, (playerObj.x, playerObj.y))
-            #print("Trying to implement this bitch")
+
+            self.window.blit(self.player.currentSprite, (playerObj.x, playerObj.y))
+
+            pygame.draw.rect(self.window, (255, 0, 0), playerObj, 2)
 
         for x in range(len(self.meteors)):
             meteorObj = self.meteors[x].ReturnPyGameObject()
-            pygame.draw.rect(self.window, (0, 255, 0), meteorObj)
-            #print("Hi my name is", self.meteors[x].name, " | My current Position is: [", meteorObj.x,"][", meteorObj.y,"]")
+
+            if self.meteors[x].debug:
+                pygame.draw.rect(self.window, (0, 255, 0), meteorObj)
+            else:
+                self.window.blit(self.meteors[x].DrawCurrentSprite(), (meteorObj.x, meteorObj.y))
+
+            pygame.draw.rect(self.window, (255, 0, 0), meteorObj, 2)
 
         pygame.display.update()
+
+    def AnimationCheck(self):
+        if self.meteorCount >= self.animationTimerLimit :
+            for x in range(0, len(self.meteors)):
+                self.meteors[x].SetNextFrame()
+
+            self.animationTimer = 0
 
     def GetUserInput(self, player):
         self.userInput = pygame.key.get_pressed()
 
         if self.userInput[pygame.K_LEFT] and player.ReturnPyGameObject().x >= 0:
             player.ReturnPyGameObject().x = player.ReturnPyGameObject().x - player.speed
-            player.SetNewPlayerSprite(1, 0)
+            player.SetNewPlayerSprite(1, False)
         elif self.userInput[pygame.K_RIGHT] and player.ReturnPyGameObject().x <= self.window.get_width() - player.width:
             player.ReturnPyGameObject().x = player.ReturnPyGameObject().x + player.speed
-            player.SetNewPlayerSprite(1, 1)
+            player.SetNewPlayerSprite(1, True)
         else:
-            player.SetNewPlayerSprite(0, 0)
-
+            player.SetNewPlayerSprite(0, False)
 
     def CheckForGameOver(self, player: Entities.Player):
         if player.dead:
