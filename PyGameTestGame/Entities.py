@@ -1,5 +1,4 @@
 import random
-
 import pygame
 import os
 
@@ -31,52 +30,54 @@ class Meteor(Entity):
 
         self.spriteSize = []
 
-        self.currentSprite = random.randrange(0, 9)
+        self.currentSpriteIndex = random.randrange(0, 9)
+
+        self.currentSprite = 0
 
         self.meteorSprites = pygame.image.load(script_dir + "/Resources/Meteor-Spinning-Sheet.png").convert_alpha()
 
-        self.correctCollider = False
-
         self.CreatePyGameObject(self.debug, self.posX, self.posY)
 
+        self.currentMask : pygame.mask
+
     def CreatePyGameObject(self, debugRect: bool, posX: float, posY: float):
-        self.pyGameObject = pygame.Rect(posX, posY, self.width, self.height)
+        if not debugRect:
+            surface = self.DrawCurrentSprite()
+
+            self.currentSprite = surface
+
+            self.pyGameObject = pygame.Rect(posX, posY, self.width, self.height)
+
+            self.currentMask = pygame.mask.from_surface(surface)
+
+            #self.pyGameObject = spriteRect
+        else:
+            self.pyGameObject = pygame.Rect(posX, posY, self.width, self.height)
 
     def ReturnPyGameObject(self):
         return self.pyGameObject
 
     def DrawCurrentSprite(self):
-        #print("Hi, my name is ", self.name, " and my currentSprite is ", self.currentSprite)
         areaX = 50
 
         if self.currentSprite != 0:
-            areaX = areaX * self.currentSprite
+            areaX = areaX * self.currentSpriteIndex
 
         surface = pygame.Surface((50, 50))
 
         surface.set_colorkey((255,255,255))
 
-        surface.blit(self.meteorSprites, (0, 0), (areaX, 0, 50, 50))
+        self.currentSprite = surface.blit(self.meteorSprites, (0, 0), (areaX, 0, 50, 50))
 
-        if not self.correctCollider:
-            mask = pygame.mask.from_surface(surface)
+        self.currentMask = pygame.mask.from_surface(surface)
 
-            newRect = mask.get_bounding_rects()
-
-            self.correctCollider = True
-            self.pyGameObject.fit(newRect[0])
-
-            self.pyGameObject.x = self.posX
-            self.pyGameObject.y = self.posY
-
-            #print("Set new rect for ", self.name, " - X{", self.pyGameObject.x, "}-Y{", self.pyGameObject.y, "}")
         return surface
 
     def SetNextFrame(self):
-        if self.currentSprite < 8:
-            self.currentSprite = self.currentSprite + 1
+        if self.currentSpriteIndex < 9:
+            self.currentSpriteIndex = self.currentSpriteIndex + 1
         else:
-            self.currentSprite = 0
+            self.currentSpriteIndex = 0
 
 class Player(Entity):
     def __init__(self, name, width, height, speed, posX, posY, debug):
@@ -93,9 +94,15 @@ class Player(Entity):
         self.playerSprites.append(pygame.image.load(script_dir + "/Resources/Ship.png").convert_alpha())
         self.playerSprites.append(pygame.image.load(script_dir + "/Resources/Ship Turning.png").convert_alpha())
 
+        self.thrusterSprites = pygame.image.load(script_dir + "/Resources/ShipThruster-Sheet.png").convert_alpha()
+
+        self.currentThrusterFrame = 0
+
         self.currentSprite = self.playerSprites[0]
 
         self.CreatePyGameObject(debug, self.posX, self.posY)
+
+        self.currentMask = pygame.mask.from_surface(self.currentSprite)
 
     def CreatePyGameObject(self, debugRect: bool, posX: float, posY: float):
         self.pyGameObject = pygame.Rect(posX, posY, self.width, self.height)
@@ -103,12 +110,36 @@ class Player(Entity):
         if not debugRect:
             self.SetNewPlayerSprite(0,False)
 
+
     def SetNewPlayerSprite(self, index : int, flip: bool):
         self.currentSprite = self.playerSprites[index]
 
         self.currentSprite = pygame.transform.flip(self.currentSprite, flip, False)
-        #print("Flipped equals: ", flip)
 
         self.currentSprite.set_colorkey((255,255,255))
 
+        self.currentMask = pygame.mask.from_surface(self.currentSprite)
 
+        #self.currentSprite = self.currentMask.to_surface()
+
+    def DrawThruster(self):
+        areaX = 50
+
+        if self.currentThrusterFrame != 0:
+            areaX = areaX * self.currentThrusterFrame
+
+        surface = pygame.Surface((50, 50))
+
+        surface.set_colorkey((255,255,255))
+
+        surface.blit(self.thrusterSprites, (0, 0), (areaX, 38, 50, 50))
+
+        self.currentMask = pygame.mask.from_surface(surface)
+
+        return surface
+
+    def SetNewThrusterFrame(self):
+        if self.currentThrusterFrame < 3:
+            self.currentThrusterFrame = self.currentThrusterFrame + 1
+        else:
+            self.currentThrusterFrame = 0

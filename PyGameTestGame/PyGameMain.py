@@ -3,8 +3,6 @@ import time
 import pygame
 import os
 from PyGameTestGame import Entities
-from PyGameTestGame.Entities import Meteor
-
 
 class RunGame:
 
@@ -41,7 +39,9 @@ class RunGame:
 
         self.meteorsToSpawn = meteorsPerCycle
 
-        self.animationTimerLimit = 35
+        self.animationTimerLimit = 30
+
+        self.animationTimer = 0
 
         while self.running:
             self.PlayGame()
@@ -78,12 +78,13 @@ class RunGame:
 
         for meteor in self.meteors[:]: #esses 2 pontos no meio dos colchetes e para fazer as operações do FOR em uma copia pra só depois iterar na lista original e não gerar problemas
             meteorObj = meteor.ReturnPyGameObject()
+            playerObj = self.player.ReturnPyGameObject()
 
             meteorObj.y = meteorObj.y + meteor.speed
 
             if meteorObj.y > self.window.get_height() + meteorObj.height:
                 self.meteors.remove(meteor)
-            elif meteorObj.y + meteorObj.height >= self.player.ReturnPyGameObject().y and meteorObj.colliderect(self.player.ReturnPyGameObject()):
+            elif meteor.currentMask.overlap(self.player.currentMask, (meteorObj.x - playerObj.x, meteorObj.y - playerObj.y)):
                 self.meteors.remove(meteor)
                 self.player.dead = True
                 break
@@ -105,10 +106,9 @@ class RunGame:
             pygame.draw.rect(self.window, "red", self.player.ReturnPyGameObject())
         else:
             playerObj = self.player.ReturnPyGameObject()
-
+            thrusterPosY = playerObj.y + self.player.height/1.25
+            self.window.blit(self.player.DrawThruster(), (playerObj.x, thrusterPosY))
             self.window.blit(self.player.currentSprite, (playerObj.x, playerObj.y))
-
-            pygame.draw.rect(self.window, (255, 0, 0), playerObj, 2)
 
         for x in range(len(self.meteors)):
             meteorObj = self.meteors[x].ReturnPyGameObject()
@@ -118,12 +118,14 @@ class RunGame:
             else:
                 self.window.blit(self.meteors[x].DrawCurrentSprite(), (meteorObj.x, meteorObj.y))
 
-            pygame.draw.rect(self.window, (255, 0, 0), meteorObj, 2)
-
         pygame.display.update()
 
     def AnimationCheck(self):
-        if self.meteorCount >= self.animationTimerLimit :
+        self.animationTimer += self.clock.tick(60)
+
+        if self.animationTimer >= self.animationTimerLimit :
+            self.player.SetNewThrusterFrame()
+
             for x in range(0, len(self.meteors)):
                 self.meteors[x].SetNextFrame()
 
