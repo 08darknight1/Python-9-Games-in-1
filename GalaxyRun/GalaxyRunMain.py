@@ -2,7 +2,7 @@ import random
 import time
 import pygame
 import os
-from PyGameTestGame import Entities
+from GalaxyRun import Entities
 
 class RunGame:
 
@@ -15,7 +15,7 @@ class RunGame:
 
         self.window = pygame.display.set_mode((Width, Height))
 
-        pygame.display.set_caption("Dog Fight!")
+        pygame.display.set_caption("Galaxy Run")
 
         self.running = True
 
@@ -84,16 +84,16 @@ class RunGame:
 
             if meteorObj.y > self.window.get_height() + meteorObj.height:
                 self.meteors.remove(meteor)
-            elif meteor.currentMask.overlap(self.player.currentMask, (meteorObj.x - playerObj.x, meteorObj.y - playerObj.y)):
+            elif meteor.currentMask.overlap(self.player.currentMask, (playerObj.x - meteorObj.x, playerObj.y - meteorObj.y)):
                 self.meteors.remove(meteor)
                 self.player.dead = True
                 break
 
+        self.DrawGame()
+
         self.CheckForGameOver(self.player)
 
         self.AnimationCheck()
-
-        self.DrawGame()
 
     def DrawGame(self):
         self.window.blit(self.background, (0, 0))

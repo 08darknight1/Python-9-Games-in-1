@@ -71,7 +71,15 @@ class Meteor(Entity):
 
         self.currentMask = pygame.mask.from_surface(surface)
 
+        #Enable this next part to test the mask collision and comment the return surface
+        #surfaceFromMask = self.currentMask.to_surface()
+
+        #surfaceFromMask.set_colorkey((0, 0, 0))
+
+        #return surfaceFromMask
+
         return surface
+
 
     def SetNextFrame(self):
         if self.currentSpriteIndex < 9:
@@ -120,7 +128,12 @@ class Player(Entity):
 
         self.currentMask = pygame.mask.from_surface(self.currentSprite)
 
-        #self.currentSprite = self.currentMask.to_surface()
+        #This right here needs to be enabled to show the masks to test collision
+        #maskToSurface = self.currentMask.to_surface()
+
+        #maskToSurface.set_colorkey((0, 0, 0))
+
+        #self.currentSprite = maskToSurface
 
     def DrawThruster(self):
         areaX = 50
