@@ -24,6 +24,12 @@ class SpaceShip(Entity):
 
         self.ammo = 10
 
+        self.life = 2
+
+        self.ammoMax = 10
+
+        self.reloadTimerMax = 5
+
         self.rotation = rotation
 
         self.playerSprites = []

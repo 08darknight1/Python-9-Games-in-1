@@ -1,10 +1,7 @@
-import random
 import time
 import pygame
 import os
 from DogFight import Entities
-from DogFight.Entities import Bullet, Entity
-
 
 class RunGame:
 
@@ -13,13 +10,17 @@ class RunGame:
 
         self.font = pygame.font.SysFont("Arial", 20)
 
-        self.gameOverFont = pygame.font.SysFont("Arial", 80)
+        self.gameOverFont = pygame.font.SysFont("Arial", 50)
+
+        self.biggerGameOverFont = pygame.font.SysFont("Arial", 51)
 
         self.window = pygame.display.set_mode((Width, Height))
 
         pygame.display.set_caption("Dog Fight")
 
         self.running = True
+
+        self.gameOver = False
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,6 +38,18 @@ class RunGame:
         self.borderSize = 10
 
         self.bulletList = []
+
+        self.reloadP1Timer = 0
+
+        self.reloadP1TimerStart = 0
+
+        self.reloadP1Started = False
+
+        self.reloadP2Timer = 0
+
+        self.reloadP2TimerStart = 0
+
+        self.reloadP2Started = False
 
         self.Player1 = Entities.SpaceShip("P1", 50, 50, 0, (Height/2)-25, 10, True, -90)
 
@@ -82,20 +95,31 @@ class RunGame:
                 bulletObj.x = bulletObj.x + bullet.speed
                 if bullet.currentMask.overlap(self.Player2.currentMask, (p2_Obj.x - bulletObj.x, p2_Obj.y - bulletObj.y)):
                     self.bulletList.remove(bullet)
+                    self.Player2.life -= 1
 
+                    if self.Player2.life <= 0:
+                        self.gameOver = True
             else:
                 bulletObj.x = bulletObj.x - bullet.speed
                 if bullet.currentMask.overlap(self.Player1.currentMask, (p1_Obj.x - bulletObj.x, p1_Obj.y - bulletObj.y)):
                     self.bulletList.remove(bullet)
+                    self.Player1.life -= 1
+
+                    if self.Player1.life <= 0:
+                        self.gameOver = True
 
             if bulletObj.x < bullet.width * -1 or bulletObj.x > self.window.get_width() + bullet.width:
                 self.bulletList.remove(bullet)
 
         #print("Bullet list size: ", + len(self.bulletList))
 
+        self.AddAmmo()
+
         self.AnimationCheck()
 
         self.DrawGame()
+
+        self.GameOverCheck()
 
     def DrawGame(self):
         #Draw Background
@@ -141,6 +165,49 @@ class RunGame:
                 bullet.SetNewMissileFrame()
 
             self.animationTimer = 0
+
+    def AddAmmo(self):
+        if self.Player1.ammo < self.Player1.ammoMax:
+            if not self.reloadP1Started:
+                self.reloadP1TimerStart = time.time()
+                self.reloadP1Started = True
+
+            self.reloadP1Timer = time.time() - self.reloadP1TimerStart
+
+            if self.reloadP1Timer >= self.Player1.reloadTimerMax:
+                self.Player1.ammo += 1
+                self.reloadP1Started = False
+
+        if self.Player2.ammo < self.Player2.ammoMax:
+            if not self.reloadP2Started:
+                self.reloadP2TimerStart = time.time()
+                self.reloadP2Started = True
+
+            self.reloadP2Timer = time.time() - self.reloadP2TimerStart
+
+            if self.reloadP2Timer >= self.Player2.reloadTimerMax:
+                self.Player2.ammo += 1
+                self.reloadP2Started = False
+
+    def GameOverCheck(self):
+        if self.gameOver:
+            lostText= self.gameOverFont.render("PLAYER 1 WON!", 1, "Black")
+            lostTextBackground = self.biggerGameOverFont.render("PLAYER 1 WON!", 1, self.Player1.Color)
+
+            if self.Player1.life <= 0:
+                lostText= self.gameOverFont.render("PLAYER 2 WON!", 1, "Black")
+                lostTextBackground = self.biggerGameOverFont.render("PLAYER 2 WON!", 1, self.Player2.Color)
+
+            textWidth = self.window.get_width() / 2 - lostText.get_width() / 2
+            textHeight = self.window.get_height() / 2 - lostText.get_height() / 2
+
+            self.window.blit(lostTextBackground, (textWidth-3.5, textHeight+1.80))
+            self.window.blit(lostText, (textWidth, textHeight))
+
+            pygame.display.update()
+            pygame.time.wait(4000)
+
+            self.running = False
 
     def GetUserInput(self):
         userInput = pygame.key.get_pressed()
