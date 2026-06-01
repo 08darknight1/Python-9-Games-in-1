@@ -20,7 +20,7 @@ class Entity:
 
 class SpaceShip(Entity):
     def __init__(self, name, width, height, posX, posY, speed, debug, rotation):
-        Entity.__init__(self, name, width, height, speed)
+        super().__init__(name, width, height, speed)
 
         self.ammo = 10
 

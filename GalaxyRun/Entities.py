@@ -149,8 +149,6 @@ class Player(Entity):
 
         self.currentMask = pygame.mask.from_surface(surface)
 
-        surface.set_colorkey((0,0,0))
-
         return surface
 
     def SetNewThrusterFrame(self):

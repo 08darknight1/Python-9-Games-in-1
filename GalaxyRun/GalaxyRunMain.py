@@ -5,7 +5,6 @@ import os
 from GalaxyRun import Entities
 
 class RunGame:
-
     def __init__(self, Width: int, Height: int, playerH: int, playerW: int, meteorsPerCycle) -> None:
         pygame.font.init()
 

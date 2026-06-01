@@ -1,12 +1,13 @@
 import time
 import pygame
 import os
+
 from DogFight import Entities
 
 class RunGame:
-
     def __init__(self, Width: int, Height: int) -> None:
         pygame.font.init()
+        pygame.mixer.init()
 
         self.font = pygame.font.SysFont("Arial", 20)
 
@@ -26,6 +27,18 @@ class RunGame:
 
         self.background = pygame.transform.scale(pygame.image.load(script_dir + "/Resources/spaceBackground.jpeg"),
                                                  (Width, Height))
+
+        self.sounds = []
+
+        laserShoot = pygame.mixer.Sound(script_dir + "/Resources/laserShoot.wav")
+
+        hitSound1 = pygame.mixer.Sound(script_dir + "/Resources/shipHit1.wav")
+
+        hitSound2 = pygame.mixer.Sound(script_dir + "/Resources/shipHit2.wav")
+
+        self.sounds.append(laserShoot)
+        self.sounds.append(hitSound1)
+        self.sounds.append(hitSound2)
 
         self.clock = pygame.time.Clock()
 
@@ -78,6 +91,8 @@ class RunGame:
                     self.bulletList.append(newBullet)
                     self.Player1.ammo -= 1
 
+                    self.sounds[0].play()
+
 
                 if event.key == pygame.K_RETURN and self.Player2.ammo > 0:
                     p2_Obj = self.Player2.ReturnPyGameObject()
@@ -85,6 +100,8 @@ class RunGame:
                                                 self.Player2.Color)
                     self.bulletList.append(newBullet)
                     self.Player2.ammo -= 1
+
+                    self.sounds[0].play()
 
         for bullet in self.bulletList[:]:
             bulletObj = bullet.ReturnPyGameObject()
@@ -97,16 +114,22 @@ class RunGame:
                     self.bulletList.remove(bullet)
                     self.Player2.life -= 1
 
+                    self.sounds[1].play()
+
                     if self.Player2.life <= 0:
                         self.gameOver = True
+                        self.sounds[2].play()
             else:
                 bulletObj.x = bulletObj.x - bullet.speed
                 if bullet.currentMask.overlap(self.Player1.currentMask, (p1_Obj.x - bulletObj.x, p1_Obj.y - bulletObj.y)):
                     self.bulletList.remove(bullet)
                     self.Player1.life -= 1
 
+                    self.sounds[1].play()
+
                     if self.Player1.life <= 0:
                         self.gameOver = True
+                        self.sounds[2].play()
 
             if bulletObj.x < bullet.width * -1 or bulletObj.x > self.window.get_width() + bullet.width:
                 self.bulletList.remove(bullet)
@@ -191,12 +214,21 @@ class RunGame:
 
     def GameOverCheck(self):
         if self.gameOver:
+            self.window.blit(self.background, (0, 0))
+
             lostText= self.gameOverFont.render("PLAYER 1 WON!", 1, "Black")
             lostTextBackground = self.biggerGameOverFont.render("PLAYER 1 WON!", 1, self.Player1.Color)
+
+            # Draw Players
+            p1_Obj = self.Player1.ReturnPyGameObject()
+            p2_Obj = self.Player2.ReturnPyGameObject()
 
             if self.Player1.life <= 0:
                 lostText= self.gameOverFont.render("PLAYER 2 WON!", 1, "Black")
                 lostTextBackground = self.biggerGameOverFont.render("PLAYER 2 WON!", 1, self.Player2.Color)
+                self.window.blit(self.Player2.ReturnShipSprite(), (p2_Obj.x, p2_Obj.y))
+            else:
+                self.window.blit(self.Player1.ReturnShipSprite(), (p1_Obj.x, p1_Obj.y))
 
             textWidth = self.window.get_width() / 2 - lostText.get_width() / 2
             textHeight = self.window.get_height() / 2 - lostText.get_height() / 2
