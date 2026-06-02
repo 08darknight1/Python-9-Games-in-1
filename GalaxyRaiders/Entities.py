@@ -20,6 +20,10 @@ class Ship(Entity):
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
+        self.shipTurning = False
+
+        self.flip = False
+
         self.rotation = rotation
 
         self.speed = speed
@@ -48,7 +52,7 @@ class Ship(Entity):
         self.CreatePyGameObject(True, PosX, PosY)
 
     def ReturnShipSprite(self):
-        #self.currentSprite = pygame.transform.flip(self.currentSprite, self.flip, False)
+        self.currentSprite = pygame.transform.flip(self.currentSprite, self.flip, False)
 
         imgToReturn = pygame.transform.rotate(self.currentSprite, self.rotation)
 
@@ -66,6 +70,40 @@ class Ship(Entity):
 
     def CreatePyGameObject(self, debug, posX: float, posY: float):
         super().CreatePyGameObject(debug, posX, posY)
+
+    def ChangeShipMainSprite(self, newValue: bool, flip):
+        self.flip = flip
+
+        self.shipTurning = newValue
+
+        if self.shipTurning:
+            self.currentSprite = self.playerSprites[1]
+        else:
+            self.currentSprite = self.playerSprites[0]
+
+        self.currentMask = pygame.mask.from_surface(self.currentSprite)
+
+    def ReturnThrusterToDraw(self):
+        areaX = 50
+
+        if self.currentThrusterFrame != 0:
+            areaX = areaX * self.currentThrusterFrame
+
+        surface = pygame.Surface((50, 15))
+
+        self.thrusterSprites.set_colorkey((255, 255, 255))
+
+        surface.blit(self.thrusterSprites, (0, 0), (areaX, 38, 50, 50))
+
+        surface.set_colorkey((0,0,0))
+
+        return surface
+
+    def SetNewThrusterFrame(self):
+        if self.currentThrusterFrame < 3:
+            self.currentThrusterFrame = self.currentThrusterFrame + 1
+        else:
+            self.currentThrusterFrame = 0
 
 class Bullet(Entity):
     def __init__(self, Name: str, SizeW, SizeH, posX, posY, owner: Ship, color: pygame.Color) -> None:
