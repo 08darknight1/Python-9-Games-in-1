@@ -6,7 +6,6 @@ import random
 from GalaxyRaiders import Entities
 from GalaxyRaiders import GameDrawer
 
-
 class RunGame:
     def __init__(self, Width: int, Height: int) -> None:
         pygame.font.init()
@@ -33,6 +32,10 @@ class RunGame:
 
         self.animationTimer = 0
 
+        self.enemiesList = []
+
+        self.startedNewLevel = False
+
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         self.background = pygame.transform.scale(pygame.image.load(script_dir + "/Resources/spaceBackground.jpeg"),
@@ -47,8 +50,10 @@ class RunGame:
 
         playerObj = self.player.pyGameObject
 
-        self.drawer.AddObject("Player Ship", "Dynamic", playerObj, self.player.ReturnShipSprite(), playerObj.x, playerObj.y, 2)
+        self.drawer.AddObject("Player Ship", "Dynamic", playerObj, self.player.ReturnShipSprite(), 0, 0, 2)
         self.drawer.AddObject("Player Ship Thruster", "Static", None, self.player.ReturnThrusterToDraw(), playerObj.x, playerObj.y + 40, 3)
+
+        #self.SpawnNewEnemy()
 
         while self.running:
             self.PlayGame()
@@ -63,11 +68,57 @@ class RunGame:
                 self.running = False
                 break
 
+        self.LevelHandler()
+
         self.Animator()
 
         self.drawer.Draw()
 
         self.GetUserInput()
+
+        self.MoveEnemies()
+
+    def SpawnNewEnemy(self, posXforEnemy):
+        posYforEnemy = (self.window.get_height()/2) * -1
+        newEnemy = Entities.Ship("NewEnemy", 50, 50, posXforEnemy, posYforEnemy, 180, 5)
+        self.enemiesList.append(newEnemy)
+        lastItemIndex = len(self.enemiesList) - 1
+        lastDrawObjectIndex = len(self.drawer.objectsList) - 1
+        newPrioNumber = self.drawer.objectsList[lastDrawObjectIndex].prio + 1
+        newPrioNumber2 = self.drawer.objectsList[lastDrawObjectIndex].prio + 2
+        newEnemyNameIndex = str(len(self.enemiesList))
+        self.drawer.AddObject("Enemy Ship" + newEnemyNameIndex, "Dynamic", self.enemiesList[lastItemIndex].pyGameObject, self.enemiesList[lastItemIndex].ReturnShipSprite(), 0, 0, newPrioNumber)
+        self.drawer.AddObject("Enemy Ship Thruster" + newEnemyNameIndex, "Static", None, self.enemiesList[lastItemIndex].ReturnThrusterToDraw(), self.enemiesList[lastItemIndex].pyGameObject.x + 1, self.enemiesList[lastItemIndex].pyGameObject.y - 5, newPrioNumber2)
+
+    def LevelHandler(self):
+        if self.startedNewLevel == False:
+            numberOfEnemies = random.randrange(0, 20)
+            print("Number of enemies to spawn in level ", self.level, ": ", numberOfEnemies)
+            for x in range(numberOfEnemies):
+                posX = random.randrange(0, (self.window.get_width() - 50))
+                self.SpawnNewEnemy(posX)
+
+            self.startedNewLevel = True
+        elif self.startedNewLevel == True:
+            #print("Enemy List Size: ", len(self.enemiesList))
+            if len(self.enemiesList) <= 0:
+                self.level += 1
+                self.startedNewLevel = False
+
+    def MoveEnemies(self):
+        enemyPrio: int
+        enemyPosY : float
+        for enemy in self.enemiesList:
+            enemy.pyGameObject.y += enemy.speed
+            for drawingObjects in self.drawer.objectsList:
+                if drawingObjects.type == "Dynamic" and drawingObjects.PyObject == enemy.pyGameObject:
+                    enemyPrio = drawingObjects.prio + 1
+                    enemyPosY = drawingObjects.PyObject.y
+                    break
+
+            if enemyPrio is not None:
+                thrusterName = self.drawer.objectsList[enemyPrio].name
+                self.drawer.ChangeObject(thrusterName, 4, enemyPosY - 5)
 
     def Animator(self):
         self.animationTimer += self.clock.tick(60)
@@ -76,6 +127,20 @@ class RunGame:
             #Put changes in animator here
             self.player.SetNewThrusterFrame()
             self.drawer.ChangeObject("Player Ship Thruster", 2, self.player.ReturnThrusterToDraw())
+
+            for enemy in self.enemiesList:
+                enemy.SetNewThrusterFrame()
+                enemyPrio : int
+                for drawingObjects in self.drawer.objectsList:
+                    if drawingObjects.type == "Dynamic" and drawingObjects.PyObject == enemy.pyGameObject:
+                        enemyPrio = drawingObjects.prio + 1
+                        break
+
+                if enemyPrio is not None:
+                    thrusterName = self.drawer.objectsList[enemyPrio].name
+                    self.drawer.ChangeObject(thrusterName, 2, enemy.ReturnThrusterToDraw())
+                    break
+
 
             self.animationTimer = 0
 

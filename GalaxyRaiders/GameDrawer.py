@@ -34,7 +34,6 @@ class Drawer:
 
     def Draw(self):
         pygame.display.update()
-
         if len(self.objectsList) > 0:
            for drawings in self.objectsList:
                if drawings.type == "Static":
@@ -46,10 +45,14 @@ class ObjectToDraw:
     def __init__(self, name, type, PyObject: pygame.Rect, ObjSurface: pygame.Surface, PosX: float, PosY: float, prio:int):
         self.name = name
         self.type = type
+
         self.PyObject : pygame.Rect
+
         self.surface = ObjSurface
+
         self.PosX : float
         self.PosY : float
+
         self.prio = prio
 
         if type == "Static":

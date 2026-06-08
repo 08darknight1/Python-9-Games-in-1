@@ -97,6 +97,9 @@ class Ship(Entity):
 
         surface.set_colorkey((0,0,0))
 
+        if self.rotation > 0:
+            surface = pygame.transform.flip(surface, self.flip, True)
+
         return surface
 
     def SetNewThrusterFrame(self):
