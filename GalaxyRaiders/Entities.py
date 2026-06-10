@@ -20,6 +20,12 @@ class Ship(Entity):
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
+        self.ammo = 10
+
+        self.ammoMax = 10
+
+        self.reloadTimerMax = 5
+
         self.shipTurning = False
 
         self.flip = False
@@ -112,9 +118,13 @@ class Bullet(Entity):
     def __init__(self, Name: str, SizeW, SizeH, posX, posY, owner: Ship, color: pygame.Color) -> None:
         super().__init__(Name, SizeW, SizeH)
 
+        self.speed = 6
+
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         self.owner = owner
+
+        self.flip = True
 
         self.missileColor = color
 
@@ -124,12 +134,38 @@ class Bullet(Entity):
 
         self.currentMissileFrame = 0
 
-        self.CreatePyGameObject(False, posX, posY)
+        self.CreatePyGameObject(True, posX, posY)
 
-        #self.currentMask = pygame.mask.from_surface(self.ReturnCurrentMissileSprite())
+        self.currentMask = pygame.mask.from_surface(self.ReturnCurrentMissileSprite())
 
     def CreatePyGameObject(self, debug, posX: float, posY: float):
         super().CreatePyGameObject(debug, posX, posY)
+
+    def ReturnCurrentMissileSprite(self):
+        areaX = 50
+
+        if self.currentMissileFrame != 0:
+            areaX = areaX * self.currentMissileFrame
+
+        surface = pygame.Surface((50, 50))
+
+        surface.blit(self.missileSprites, (0, 0), (areaX, 0, 50, 50))
+
+        if self.flip:
+            surface = pygame.transform.rotate(surface, 90)
+
+        surface.set_colorkey((0, 0, 0))
+
+        coloredImage = pygame.Surface(surface.get_size()).convert_alpha()
+
+        coloredImage.fill(self.missileColor)
+
+        surface.blit(coloredImage, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+        self.currentMask = pygame.mask.from_surface(surface)
+
+        return surface
+
 
     def SetNewMissileFrame(self):
         if self.currentMissileFrame < 5:
