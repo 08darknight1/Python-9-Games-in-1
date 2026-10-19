@@ -22,6 +22,8 @@ class Ship(Entity):
 
         self.ammo = 10
 
+        self.life = 3
+
         self.ammoMax = 10
 
         self.reloadTimerMax = 5

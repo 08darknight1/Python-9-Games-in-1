@@ -53,7 +53,9 @@ class Drawer:
                 self.objectsList.remove(objs)
                 break
 
+        pygame.display.update()
         self.Draw()
+        pygame.display.update()
 
 class ObjectToDraw:
     def __init__(self, name, type, PyObject: pygame.Rect, ObjSurface: pygame.Surface, PosX: float, PosY: float, prio:int):
